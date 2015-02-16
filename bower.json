@@ -5,7 +5,7 @@
     "athr <atanaschristov@gmail.com>"
   ],
   "description": "angular service generating json data locally according to a given data model",
-  "main": "json-generator.js",
+  "main": "src/json-generator.js",
   "moduleType": [
     "globals"
   ],
