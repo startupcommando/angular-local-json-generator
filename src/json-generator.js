@@ -1,4 +1,3 @@
-/*global angular,moment,_*/
 /* Example modelValue which should be passed to setDataModel
 	{
 		slug: {jsonType: 'slugFromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
@@ -25,11 +24,9 @@
 	}
 */
 
-(function(){
+(function(window, angular, moment , _){
 	'use strict';
-	angular.module('sc.angular-local-json-generator').service('JsonGeneratorSvc',['$q',JsonGeneratorService]);
-
-	var JsonGeneratorService = function($q) {
+	angular.module('angular-local-json-generator',[]).factory('JsonGenerator',['$q',function($q) {
 		var dataModel = null, generatedData = [];
 		var errMsg = 'Error: ';
 		var config = null;
@@ -60,17 +57,17 @@ Example of dataModel values. different generators support different fields. All 
 		var uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 		var numbers = '0123456789';
 
-		//NOTE: globalTemp this is used for typeProcessing methods to preserve data while an 
-		// iteration is in progress outsied of the service. Example for such method is index. 
+		//NOTE: globalTemp this is used by all typeProcessing methods to preserve data while an 
+		// external(outside of the service) iteration is in progress. Example for such method is index. 
 		// A way to use it: 
-		// If a method which uses the globalTemp, should create its own attribute with its own name
-		// The method thne is free to assign anything required to that attribute
+		// If a method requires for some reason global variablr, it should create its own attribute in 
+		// globalTemp. The method then can assign anything to that attribute. 
 		var globalTemp = {}; 
 
 		var typeProcessing = {
 			text: function(modelValue) {
 				var text = null, length=null, min = null, max = null;
-				if(modelValue.value) {
+				if(typeof modelValue.value === 'string') {
 					text = modelValue.value;
 				} else {
 					text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
@@ -139,7 +136,7 @@ Example of dataModel values. different generators support different fields. All 
 				if(modelValue.range && modelValue.range.min && typeof modelValue.range.min === 'string') {
 					min = moment(modelValue.range.min,'D-M-YYYY').isValid?moment(modelValue.range.min,'D-M-YYYY').unix():0;
 					if(!min) {
-						return 'Invalid date. range.min';
+						return 'Invalid date. range.min. The format should be D-M-YYYY';
 					}
 				} else {
 					min = 1;
@@ -147,10 +144,10 @@ Example of dataModel values. different generators support different fields. All 
 				if(modelValue.range && modelValue.range.max && typeof modelValue.range.max === 'string') {
 					max = moment(modelValue.range.max,'D-M-YYYY').isValid?moment(modelValue.range.max,'D-M-YYYY').unix():moment().unix();
 					if(!max) {
-						return 'Invalid date. range.max';
+						return 'Invalid date. range.max. The format should be D-M-YYYY';
 					}
 				} else {
-					max = moment().unix();
+					max = moment().unix(); // get now as max
 				}
 				// substitude if max is less then min and use only max
 				if(max < min) {
@@ -192,6 +189,7 @@ Example of dataModel values. different generators support different fields. All 
 				return names[Math.floor(Math.random()*names.length)];
 			},
 			addressObject: function () {
+				// inspired by filltext
 				var result = {
 					country: this.country(),
 					city: this.city(),
@@ -301,42 +299,43 @@ Example of dataModel values. different generators support different fields. All 
 				return (fname.charAt(0) + lname).toLowerCase();
 			},
 			password: function (modelValue) {
-				var length = 10; // all symbols that are: lower, upper case, numeric and special
+				var length = 10; 
 				if(!modelValue.length || isNaN(parseInt(modelValue.length))) {
 					modelValue.length = length;
 				}
-				return this.letter(modelValue);
+				modelValue.format  = null; // this makes sure we use all symbols that are: lower, upper case, numeric and special
+				return this.letter(modelValue); 
 			},
 			letter: function(modelValue) {
 				var length = 100,fmt = 'luns'; // all symbols that are: lower, upper case, numeric and special
 				var result;
 				if(modelValue.length && !isNaN(parseInt(modelValue.length))) {
-					length = parseInt(modelValue.length);
+					length = parseIntmodelValue.format (modelValue.length);
 				}
-				var charContainerArr = [];
+				var charTypes = [];
 				if(modelValue.format && typeof modelValue.format === 'string') {
 					fmt = modelValue.format.toLowerCase();
 				}
 
 				if(fmt.indexOf('l') > -1) { // uppercase chars included
-					charContainerArr.push(lowercase);
+					charTypes.push(lowercase);
 				}
 				if(fmt.indexOf('u') > -1) { // uppercase chars included
-					charContainerArr.push(uppercase);
+					charTypes.push(uppercase);
 				}
 				if(fmt.indexOf('n') > -1) { // numbers included
-					charContainerArr.push(numbers);
+					charTypes.push(numbers);
 				}
 				if(fmt.indexOf('s') > -1) { // symbols included
-					charContainerArr.push(specials);
+					charTypes.push(specials);
 				}
 
-				if(charContainerArr.length > 0) {
+				if(charTypes.length > 0) {
 					result = '';
 				}
 				for(var i = 0; i < length; i += 1) {
-					var randomSymbolsType = charContainerArr[Math.floor(Math.random()*(charContainerArr.length))];
-					result = result += randomSymbolsType.charAt(Math.floor(Math.random()*(randomSymbolsType.length)));
+					var randomType = charTypes[Math.floor(Math.random()*(charTypes.length))];
+					result = result += randomType.charAt(Math.floor(Math.random()*(randomType.length)));
 				}
 				return result;
 			},
@@ -344,7 +343,7 @@ Example of dataModel values. different generators support different fields. All 
 				if(!modelValue.range || !modelValue.range.values || !(modelValue.range.values instanceof Array)) {
 					return;
 				}
-				var enumArr = modelValue.range.values;
+				var enumArr = modelValue.range.values.slice(); // copy the values to be picked from
 				return enumArr[Math.floor(Math.random()*(enumArr.length))];
 			},
 			bool: function() {
@@ -359,7 +358,7 @@ Example of dataModel values. different generators support different fields. All 
 				}
 
 				//  calculate the country code
-				codeDigits = Math.floor(Math.random()*3);
+				codeDigits = Math.floor(Math.random()*3); // randomly get the number of code digists
 				base = Math.pow(10,codeDigits);
 				max = '9';
 				for (i = 0; i<codeDigits; i += 1) {
@@ -406,7 +405,7 @@ Example of dataModel values. different generators support different fields. All 
 					} else {
 						return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 					}
-				}) // capitalize the first leter of every word
+				}) // capitalize the first leter of every word except for the first word
 				.replace(/\s+/g, ''); // remove the spaces
 
 				// TODO removal of the special characters
@@ -426,7 +425,6 @@ Example of dataModel values. different generators support different fields. All 
 			var modelValue = null;
 			var result = {};
 			for(var key in obj) {
-				// console.log('pushed in the stack index/key', key);
 				modelValue = obj[key];
 				if(modelValue && !modelValue.jsonType && modelValue instanceof Array)
 				{
@@ -439,16 +437,16 @@ Example of dataModel values. different generators support different fields. All 
 					}
 				}
 				if(typeof modelValue === 'string') {
-					// value is filltext like definition: http://www.filltext.com/
-					// modelValue = buildMetaValue(modelValue); // TODO
+					// TODO maybe create some sort of string like DSL to describe data model
+					// currently the data model should be a json structure 
+					// inspired by  filltext like definition: http://www.filltext.com/
+					// modelValue = translateModelValue(modelValue); // TODO
 				}
-				// easier if we just provide the model's values as objects of a type metaValue
 				if(typeof modelValue === 'object' && 
 					typeof modelValue.jsonType === 'string' &&
-					typeProcessing.hasOwnProperty(modelValue.jsonType)) {
-					if(typeof typeProcessing[modelValue.jsonType] === 'function') {
+					typeProcessing.hasOwnProperty(modelValue.jsonType) &&
+					typeof typeProcessing[modelValue.jsonType] === 'function') {
 						result[key] = typeProcessing[modelValue.jsonType](modelValue);
-					}
 				}
 			}
 			// returns null if result is an empty object
@@ -456,7 +454,12 @@ Example of dataModel values. different generators support different fields. All 
 		};
 
 		var generateArrayValue = function(obj) {
-			return typeProcessing[obj.jsonType](obj);
+			if(typeof obj === 'object' && 
+				typeof obj.jsonType === 'string' &&
+				typeProcessing.hasOwnProperty(obj.jsonType) &&
+				typeof typeProcessing[obj.jsonType] === 'function') {
+					return typeProcessing[obj.jsonType](obj);
+			}
 		};
 
 		var generateArray = function(obj) {
@@ -469,7 +472,7 @@ Example of dataModel values. different generators support different fields. All 
 					result[idx] = generateObjectValues(obj);
 				}
 				if(typeof result[idx] === 'undefined') {
-					errMsg = errMsg+='The value with index '+idx +'is not generated.';
+					errMsg = errMsg+='Unable to generate a value with index '+idx;
 					return;
 				}
 			}
@@ -501,7 +504,7 @@ Example of dataModel values. different generators support different fields. All 
 				var delay = 0;
 				// console.log('Supported generators:', Object.getOwnPropertyNames(typeProcessing));
 				if(!config) {
-					errMsg = errMsg+='Wrong configuration.';
+					errMsg = errMsg+='Missing configuration.';
 					deferred.reject(errMsg);
 				}
 				if(!dataModel || typeof dataModel !== 'object') {
@@ -528,7 +531,7 @@ Example of dataModel values. different generators support different fields. All 
 				if(delay) {
 					setTimeout(function() {
 						deferred.notify('Delayed generation with '+delay+'ms.');
-						console.log('Delayed generation with '+delay+'ms.');
+						// console.log('Delayed generation with '+delay+'ms.');
 						goGenerate();
 					}, delay);					
 				} else {
@@ -538,5 +541,5 @@ Example of dataModel values. different generators support different fields. All 
 			}
 		};
 		return self;
-	};
-})();
+	}]);
+})( window, window.angular, window.moment, window._ );
