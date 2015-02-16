@@ -1,13 +1,10 @@
 # Angular service for generating json data locally 
 
 Inspired by [FillText.com](http://www.filltext.com/)
-It is common the development of both(the frontend and the backend) parts of a web app to start and progress simultaneously. This creates an issue. The frontend part requires data and the backend server/service is not ready/implemnted to provide it. As a workaround, multiple json generators such as [FillText.com](http://www.filltext.com/) appear.
 
-Most of those services are external and require connectivity. In order a frontend developer to work, he/she should be connected and the service should be available. This is obviously a limitation. 
+Usually the development of both the frontend and backend parts of a web app begin and progress simultaneously. But there is an issue. The frontend requires data and the backend is not ready to provide it. As a workaround, multiple json generators such as [FillText.com](http://www.filltext.com/) appear.  Obviously those services come with limitations. They require constant connectivity and their availability is not guaranteed.
 
-With this module we try to remove this limitation for all angular developers. 
-
-The modules can generate both array of values and array of objects. It allows unlimited levels of nested objects as well as nested arrays
+With angular-local-json-generator module we try to remove those limitations for all angular developers. 
 
 ## Install
 
@@ -23,6 +20,14 @@ bower install git@bitbucket.org:startupcommando/angular-local-json-generator.git
    
 ## Getting Started
 
+The module can generate array of values and objects. It allows unlimited depth of nesting.
+
+The module has 3 methods:
+
+* setConfig - sets a configuration object
+* setDataModel - defines the data structure: the required fields and their data types
+* generateData - obvious
+
 After installing it, make sure to register it in the angular app.
 ```javascript
 	var app = angular.module('myApp', ['angular-local-json-generator']);
@@ -36,7 +41,7 @@ Than use it in an angular service or controller:
 ```
 
 The service requires two things:
-* configuration object
+* configuration object - passed as an argument in setConfig 
 
 Here is the structure of the current configuration object:
 
@@ -48,63 +53,64 @@ Here is the structure of the current configuration object:
 
 NOTE: Currently the rows define the number of elements generated in an array and will be used for the nested arrays as well. 
 
-* dataModel, which describes the structure of the json data, which is going to be genberated. 
+* dataModel - - passed as an argument in setDataModel. It describes the structure of the json data, which is going to be generated. 
 
 Possible data structures: 
 
-Array of objects:
+* Array of objects:
 
+```
 	var dataMode = {
 		<field>: <valueDescription>
 	}
+```
 
-or
+* Array of values:
 
-Array of values:
-
+```
 	var dataMode = {
 		<valueDescription>
 	}
+```
 
-or
+* Nested Array of values:
 
-Nested Array of values:
-
+```
 	var dataMode = {
 		<field>: [<valueDescription>]
 	}
+```
 
-or 
+* Nested Array of objects:
 
-Nested Array of objects:
-
+```
 	var dataMode = {
 		<field>: [{
 			field: <valueDescription>
 		}]
 	}
+```
 
-or 
+* Nested object:
 
-Nested object:
-
+```
 	var dataMode = {
 		<field>: {
 			field: <valueDescription>
 		}
 	}
+```
 
-
-The valueDescription is of a 
+The valueDescription is an object with the following structure:  
 
 	var metaValue = {
 		jsonType: null, // mandatory field. The supported dataTypes are: ["text", "number", "float", "date", "name", "firstName", "lastName", "addressObject", "zip", "country", "city", "address", "email", "ip", "username", "password", "letter", "enum", "bool", "phone", "index", "slugFromText"]
 
 		value: null, // optional, can be used to customize the generate data. Ex: text field
 		
-		length: null, // optional, the behavuiur changes according to which data type is generated. if text, the filld represents the number of words, if string - the number of chars, if numeric - the number digits in the number
+		length: null, // optional, the behavior changes according to the defined data type. if "text", length means number of words, if string - number of chars, if numeric - number digits
 
-		format:null, // optional, customize the outcome of the generated data. Works with dates, phones 
+		format: null, // optional, customize the outcome of the generated data. Works with dates, phones 
 
 		range: {
 			values: null, // optional: array of values. Used by enum
@@ -122,9 +128,9 @@ The valueDescription is of a
 		id: {jsonType: 'index', value: 4}, // generating indexes with initial value 4
 		phone: {jsonType: 'phone',format: '(code) number',}, // code is replaced by a dummy country code, number by the actual number
 		flag: { jsonType: 'bool'},
-		types: {jsonType: 'enum',range: {values: ['book','paper','shit']}},
+		types: {jsonType: 'enum',range: {values: ['book','paper','article']}},
 		randomString: {jsonType: 'letter', length: 15, format: 'luns'}, // l -lowercase, u -uppercase, n -numeric, s - special char
-		fullAddress: {jsonType: 'addressObject'}, // Inspied by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
+		fullAddress: {jsonType: 'addressObject'}, // Inspired by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
 		zip: { jsonType: 'zip' },
 		country: {jsonType: 'country'},
 		address: {jsonType: 'address'},
