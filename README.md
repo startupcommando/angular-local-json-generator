@@ -1,4 +1,4 @@
-# Pyechonest
+# Angular service for generating json data locally 
 
 An angular service, which generates data in json format. 
 
