@@ -47,6 +47,7 @@ Here is the structure of the current configuration object:
 
 	var config = {
 		rows: 0-n,
+		randomRows: true,false, // randomize the number of rows. Range 1-n
 		simulateServer:  true,false // false - the delay is strict, true - the delay varies randomly in the range of 0 - 2*delay
 		delay: miliseconds
 	}
@@ -165,7 +166,7 @@ A real life example: Demonstrates nested array of values
 
 Example 2: Demonstrates nested array of objects
 
-	JsonGeneratorSvc.setConfig({rows:15});
+	JsonGeneratorSvc.setConfig({rows:15, randomRows: true}); // the number of rows will be generaed randomly in the range 1-15
 	JsonGeneratorSvc.setDataModel({
 		patientId: {jsonType: 'number',length: 7},
 		visits: [{
@@ -184,7 +185,7 @@ Example 2: Demonstrates nested array of objects
 Example 3: Demonstrates promise chains
 
 	var loadPrices = function() {
-		JsonGeneratorSvc.setConfig({rows:20,delay: 1000, simulateServer: true});
+		JsonGeneratorSvc.setConfig({rows:20,delay: 1000, simulateServer: true}); // the delay will be generated randomley in the range 0-2*delay
 		JsonGeneratorSvc.setDataModel({jsonType:'number'}); // just a simple array of values
 		return JsonGeneratorSvc.generateData().then(function (prices) {
 			$scope.prices = prices;

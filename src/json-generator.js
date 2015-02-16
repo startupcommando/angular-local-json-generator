@@ -26,6 +26,18 @@
 
 (function(window, angular, moment , _){
 	'use strict';
+
+	if(!angular) {
+		console.log('angularjs is required');
+		return;		
+	} else if(!moment) {
+		console.log('momentjs is required');
+		return;		
+	} else if (!_) {
+		console.log('lodash is required');
+		return;		
+	}
+
 	angular.module('angular-local-json-generator',[]).factory('JsonGenerator',['$q',function($q) {
 		var dataModel = null, generatedData = [];
 		var errMsg = 'Error: ';
@@ -33,7 +45,8 @@
 /* 
 Example for the config object
 		config = {
-			rows: 0-n,
+			rows: 1-n,
+			randomRows: true,false, // randomize the number of rows. Range 1-n
 			simulateServer:  true,false // false - the delay is strict, true - the delay varies randomly in the range of 0 - 2*delay
 			delay: miliseconds
 		}
@@ -463,9 +476,12 @@ Example of dataModel values. different generators support different fields. All 
 		};
 
 		var generateArray = function(obj) {
-			var result = [];
+			var result = [], rows = config.rows;
 
-			for(var idx=0; idx < config.rows; idx += 1) {
+			if(config.randomRows) {
+				rows = 1+Math.floor(Math.random()*(config.rows - 1));
+			}
+			for(var idx=0; idx < rows; idx += 1) {
 				if(obj.jsonType) {
 					result[idx] = generateArrayValue(obj);
 				} else {
