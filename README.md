@@ -1,7 +1,5 @@
 # Angular service for generating json data locally 
 
-An angular service, which generates data in json format. 
-
 Inspired by [FillText.com](http://www.filltext.com/)
 It is common the development of both(the frontend and the backend) parts of a web app to start and progress simultaneously. This creates an issue. The frontend part requires data and the backend server/service is not ready/implemnted to provide it. As a workaround, multiple json generators such as [FillText.com](http://www.filltext.com/) appear.
 
