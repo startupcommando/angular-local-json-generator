@@ -2,7 +2,7 @@
 
 Inspired by [FillText.com](http://www.filltext.com/)
 
-Usually the development of both the frontend and backend parts of a web app begin and progress simultaneously. But there is an issue. The frontend requires data and the backend is not ready to provide it. As a workaround, multiple json generators such as [FillText.com](http://www.filltext.com/) appear.  Obviously those services come with limitations. They require constant connectivity and their availability is not guaranteed.
+Usually both the frontend and the backend parts of a web are developed simultaneously. In that case there is an issue. The frontend requires data but the backend is not ready to provide it. As a workaround, multiple json generators such as [FillText.com](http://www.filltext.com/) appear.  Obviously those services come with limitations. They require constant connectivity and their availability is not guaranteed.
 
 With angular-local-json-generator module we try to remove those limitations for all angular developers. 
 
@@ -12,7 +12,7 @@ With angular-local-json-generator module we try to remove those limitations for 
 bower install git@bitbucket.org:startupcommando/angular-local-json-generator.git
 ```
 
-But i guess it makes more sense to install it as a development dependency 
+But i guess it makes more sense to install it as a development dependency.
 
 ```
 bower install git@bitbucket.org:startupcommando/angular-local-json-generator.git --save-dev
@@ -20,7 +20,7 @@ bower install git@bitbucket.org:startupcommando/angular-local-json-generator.git
    
 ## Getting Started
 
-The module can generate array of values and objects. It allows unlimited depth of nesting.
+The module can generate array of values and objects. It allows unlimited levels of nesting.
 
 The module has 3 methods:
 
@@ -28,7 +28,7 @@ The module has 3 methods:
 * setDataModel - defines the data structure: the required fields and their data types
 * generateData - obvious
 
-After installing it, make sure to register it in the angular app.
+After installing it, make sure to inject it as a dependency in the angular app.
 ```javascript
 	var app = angular.module('myApp', ['angular-local-json-generator']);
 ``` 
@@ -41,6 +41,7 @@ Than use it in an angular service or controller:
 ```
 
 The service requires two things:
+
 * configuration object - passed as an argument in setConfig 
 
 Here is the structure of the current configuration object:
@@ -56,9 +57,9 @@ NOTE: Currently the rows define the number of elements generated in an array and
 
 * dataModel - - passed as an argument in setDataModel. It describes the structure of the json data, which is going to be generated. 
 
-Possible data structures: 
+Possible dataModel structures: 
 
-* Array of objects:
+* Generates an array of objects:
 
 ```
 	var dataMode = {
@@ -66,7 +67,7 @@ Possible data structures:
 	}
 ```
 
-* Array of values:
+* Generates an array of values:
 
 ```
 	var dataMode = {
@@ -74,7 +75,7 @@ Possible data structures:
 	}
 ```
 
-* Nested Array of values:
+* Generates nested array of values:
 
 ```
 	var dataMode = {
@@ -82,7 +83,7 @@ Possible data structures:
 	}
 ```
 
-* Nested Array of objects:
+* Generates nested array of objects:
 
 ```
 	var dataMode = {
@@ -92,7 +93,7 @@ Possible data structures:
 	}
 ```
 
-* Nested object:
+* Generates a nested object:
 
 ```
 	var dataMode = {
@@ -122,7 +123,7 @@ The valueDescription is an object with the following structure:
 
 ## Examples
 
-*Example of a dataModel using all supported data types
+# Example of a dataModel using all supported data types
 
 	var dataModel = {
 		slug: {jsonType: 'slugFromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
@@ -149,13 +150,15 @@ The valueDescription is an object with the following structure:
 	}
 
 
-A real life example: Demonstrates nested array of values
+# A real life example: Demonstrates nested array of values
 
 		JsonGeneratorSvc.setConfig({rows:15});
 		JsonGeneratorSvc.setDataModel({
 			slug: {jsonType: 'slugFromText',length: 3},
-			completed: {jsonType: 'date',format: 'YYYY-MM-DD',range: { min: '23-5-2005', max: '15-12-2014' }, // the field has one date
-			scheduled: [{jsonType: 'date',format: 'YYYY-MM-DD',range: { min: '23-5-2005', max: '15-12-2014' }}] // the field is an array of dates
+			// completed will have one date
+			completed: {jsonType: 'date',format: 'YYYY-MM-DD',range: { min: '23-5-2005', max: '15-12-2014' },
+			// scheduled be an array of dates
+			scheduled: [{jsonType: 'date',format: 'YYYY-MM-DD',range: { min: '23-5-2005', max: '15-12-2014' }}]
 		});
 		JsonGeneratorSvc.generateData().then(function (data) {
 			console.log(data);
@@ -164,7 +167,7 @@ A real life example: Demonstrates nested array of values
 		});
 
 
-Example 2: Demonstrates nested array of objects
+# Example 2: Demonstrates nested array of objects
 
 	JsonGeneratorSvc.setConfig({rows:15, randomRows: true}); // the number of rows will be generaed randomly in the range 1-15
 	JsonGeneratorSvc.setDataModel({
@@ -182,10 +185,10 @@ Example 2: Demonstrates nested array of objects
 		console.log('Error:', err);
 	});
 
-Example 3: Demonstrates promise chains
+# Example 3: Demonstrate chain of promises
 
 	var loadPrices = function() {
-		JsonGeneratorSvc.setConfig({rows:20,delay: 1000, simulateServer: true}); // the delay will be generated randomley in the range 0-2*delay
+		JsonGeneratorSvc.setConfig({rows:20,delay: 1000, simulateServer: true}); // the delay will be generated randomly in the range 0-2*delay
 		JsonGeneratorSvc.setDataModel({jsonType:'number'}); // just a simple array of values
 		return JsonGeneratorSvc.generateData().then(function (prices) {
 			$scope.prices = prices;
@@ -194,7 +197,7 @@ Example 3: Demonstrates promise chains
 		});
 	};
 
-	var loadPatients = function () {
+	var loadDates = function () {
 		JsonGeneratorSvc.setConfig({rows:15});
 		JsonGeneratorSvc.setDataModel({
 			date: {jsonType: 'date'},
