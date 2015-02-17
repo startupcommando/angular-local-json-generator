@@ -79,7 +79,7 @@ Example of dataModel values. different generators support different fields. All 
 
 		var typeProcessing = {
 			text: function(modelValue) {
-				var text = null, length=null, min = null, max = null;
+				var text = null, length=null;
 				if(typeof modelValue.value === 'string') {
 					text = modelValue.value;
 				} else {
@@ -93,7 +93,7 @@ Example of dataModel values. different generators support different fields. All 
 				}
 				
 				text = '';
-				for(var i=min; i<length; i+=1) {
+				for(var i=0; i<length; i+=1) {
 					text += ' '+txtArr[Math.floor(Math.random()*txtArr.length)];
 				}
 

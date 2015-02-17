@@ -28,8 +28,7 @@ module.exports = function (grunt) {
                     singleRun: true,
                     browsers: ['PhantomJS'],
                     files: [
-                        // 'public/components/angular/angular.js',
-                        // 'public/components/angular-mocks/angular-mocks.js',
+                        'node_modules/jasmine-expect/dist/jasmine-matchers.js',
                         'bower_components/angular/angular.js',
                         'bower_components/angular-mocks/angular-mocks.js',
                         'bower_components/lodash/lodash.js',
@@ -51,7 +50,7 @@ module.exports = function (grunt) {
     grunt.registerTask('build', [
         'clean',
         'jshint',
-        // 'karma',
+        'karma',
         'uglify'
     ]);
 

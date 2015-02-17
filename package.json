@@ -25,6 +25,7 @@
     "grunt-contrib-uglify": "^0.7.0",
     "grunt-karma": "^0.10.1",
     "jasmine-core": "^2.2.0",
+    "jasmine-expect": "^1.22.3",
     "jshint-stylish": "^1.0.0",
     "karma": "^0.12.31",
     "karma-chrome-launcher": "^0.1.7",
