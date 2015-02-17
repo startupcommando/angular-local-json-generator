@@ -9,13 +9,13 @@ With angular-local-json-generator module we try to remove those limitations for 
 ## Install
 
 ```
-bower install git@bitbucket.org:startupcommando/angular-local-json-generator.git
+bower install angular-local-json-generator
 ```
 
 But i guess it makes more sense to install it as a development dependency.
 
 ```
-bower install git@bitbucket.org:startupcommando/angular-local-json-generator.git --save-dev
+bower install angular-local-json-generator --save-dev
 ```
    
 ## Getting Started
