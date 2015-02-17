@@ -93,11 +93,74 @@ describe('Testing local json generator', function() {
 		JsonGenerator.setDataModel(dataModel);
 		JsonGenerator.generateData().then(testNumberLengthRange);
 		$rootScope.$apply();
+
+		dataModel = { property: { jsonType: 'number', length: 7, range: {min: 5, max: 50}}};
+		var testNumberLengthOutOfRange = function (data) {
+			// if min and max are out of the range determined by the length, they are ignored
+			expect(data[0].property).toBeWithinRange(1000000, 9999999);
+			expect(data[1].property).toBeWithinRange(1000000, 9999999);
+			expect(data[2].property).toBeWithinRange(1000000, 9999999);
+			expect(data[3].property).toBeWithinRange(1000000, 9999999);
+		};
+		JsonGenerator.setDataModel(dataModel);
+		JsonGenerator.generateData().then(testNumberLengthOutOfRange);
+		$rootScope.$apply();
 	});
 
 
 	it('generate and test nesting of objects as well as the float type', function() {
 		var dataModel = null;
+
+		dataModel = { propertyL1: { propertyL2: { jsonType: 'float' }}};
+		var testFloatNumberDefault = function (data) {
+			expect(data).toBeArrayOfObjects();
+			expect(data.length).toBe(7);
+			expect(data[0].propertyL1).toBeObject();
+			expect(data[0].propertyL1.propertyL2).toBeNumber();
+			expect(data[0].propertyL1.propertyL2).toBeWithinRange(0,1000);
+			expect(data[1].propertyL1.propertyL2).toBeWithinRange(0,1000);
+			expect(data[2].propertyL1.propertyL2).toBeWithinRange(0,1000);
+			expect(data[3].propertyL1.propertyL2).toBeWithinRange(0,1000);
+			expect(data[4].propertyL1.propertyL2).toBeWithinRange(0,1000);
+			expect(data[5].propertyL1.propertyL2).toBeWithinRange(0,1000);
+			expect(data[6].propertyL1.propertyL2).toBeWithinRange(0,1000);
+		};
+		expect(JsonGenerator.setConfig({rows: 7})).toBe(true);
+		JsonGenerator.setDataModel(dataModel);
+		JsonGenerator.generateData().then(testFloatNumberDefault);
+		$rootScope.$apply();
+
+		dataModel = { propertyL1: { propertyL2: { jsonType: 'float', range: {min: 1.5, max: 2} }}};
+		var testFloatNumberRange = function (data) {
+			expect(data[0].propertyL1.propertyL2).toBeWithinRange(1.5,2);
+			expect(data[1].propertyL1.propertyL2).toBeWithinRange(1.5,2);
+			expect(data[2].propertyL1.propertyL2).toBeWithinRange(1.5,2);
+			expect(data[3].propertyL1.propertyL2).toBeWithinRange(1.5,2);
+			expect(data[4].propertyL1.propertyL2).toBeWithinRange(1.5,2);
+			expect(data[5].propertyL1.propertyL2).toBeWithinRange(1.5,2);
+			expect(data[6].propertyL1.propertyL2).toBeWithinRange(1.5,2);
+		};
+		expect(JsonGenerator.setConfig({rows: 7})).toBe(true);
+		JsonGenerator.setDataModel(dataModel);
+		JsonGenerator.generateData().then(testFloatNumberRange);
+		$rootScope.$apply();
 	});
+
+
+	it('generate and test nesting of array of values as well as the date type', function() {
+		var dataModel = null;
+
+		dataModel = { propertyL1: [{ jsonType: 'date' }]};
+		var testDateDefault = function (data) {
+			expect(data).toBeArrayOfObjects();
+			expect(data.length).toBe(2);
+			expect(data[0].propertyL1).toBeArrayOfStrings();
+		};
+		expect(JsonGenerator.setConfig({rows: 2})).toBe(true);
+		JsonGenerator.setDataModel(dataModel);
+		JsonGenerator.generateData().then(testDateDefault);
+		$rootScope.$apply();
+	});
+
 });
  // jshint ignore:end 

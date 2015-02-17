@@ -127,14 +127,15 @@ Example of dataModel values. different generators support different fields. All 
 				return Math.floor(Math.random() * (max - min)) + min;
 			},
 			float: function(modelValue) {
+				// TODO length for controling the number of digits after the ,
 				var min = null, max = null;
 				if(modelValue.range && !isNaN(parseInt(modelValue.range.min))) {
-					min = parseInt(modelValue.range.min);
+					min = modelValue.range.min;
 				} else {
 					min = 0;
 				}
 				if(modelValue.range && !isNaN(parseInt(modelValue.range.max))) {
-					max = parseInt(modelValue.range.max);
+					max = modelValue.range.max;
 				} else {
 					max = 1000;
 				}
