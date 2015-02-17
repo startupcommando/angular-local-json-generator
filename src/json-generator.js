@@ -323,7 +323,7 @@ Example of dataModel values. different generators support different fields. All 
 				var length = 100,fmt = 'luns'; // all symbols that are: lower, upper case, numeric and special
 				var result;
 				if(modelValue.length && !isNaN(parseInt(modelValue.length))) {
-					length = parseIntmodelValue.format (modelValue.length);
+					length = modelValue.format (modelValue.length);
 				}
 				var charTypes = [];
 				if(modelValue.format && typeof modelValue.format === 'string') {
