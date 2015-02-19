@@ -75,7 +75,7 @@ Example of dataModel values. different generators support different fields. All 
 		// A way to use it: 
 		// If a method requires for some reason global variablr, it should create its own attribute in 
 		// globalTemp. The method then can assign anything to that attribute. 
-		var globalTemp = {}; 
+		var globalTemp = {};
 
 		var typeProcessing = {
 			text: function(modelValue) {
@@ -100,18 +100,27 @@ Example of dataModel values. different generators support different fields. All 
 				return text.substr(1); // remove the leading space
 			},
 			number: function(modelValue) {
-				var min = null, max = null, i = 0;
+				var min = null, max = null, i = 0,tmp;
 				var baseMin = 1, baseMax = '9';
-				if(modelValue.range && !isNaN(parseInt(modelValue.range.min))) {
-					min = parseInt(modelValue.range.min);
+				if (modelValue.range && modelValue.range instanceof Array) {
+					min = modelValue.range[0];max = modelValue.range[1];
+				}
+
+				if(!isNaN(parseInt(min))) {
+					min = parseInt(min);
 				} else {
 					min = 0;
 				}
-				if(modelValue.range && !isNaN(parseInt(modelValue.range.max))) {
-					max = parseInt(modelValue.range.max);
+
+				if(!isNaN(parseInt(max))) {
+					max = parseInt(max);
 				} else {
 					max = 1000;
 				}
+				if(min > max) { // substitude the values
+					tmp = min; min = max; max = tmp; 
+				}
+
 				if(modelValue.length) {
 					baseMin = Math.pow(10,modelValue.length-1);
 					for(i;i<modelValue.length-1;i += 1) {
@@ -128,16 +137,24 @@ Example of dataModel values. different generators support different fields. All 
 			},
 			float: function(modelValue) {
 				// TODO length for controling the number of digits after the ,
-				var min = null, max = null;
-				if(modelValue.range && !isNaN(parseInt(modelValue.range.min))) {
-					min = modelValue.range.min;
+				var min = null, max = null,tmp;
+				if (modelValue.range && modelValue.range instanceof Array) {
+					min = modelValue.range[0];max = modelValue.range[1];
+				}
+
+				if(!isNaN(parseFloat(min))) {
+					min = parseFloat(min);
 				} else {
 					min = 0;
 				}
-				if(modelValue.range && !isNaN(parseInt(modelValue.range.max))) {
-					max = modelValue.range.max;
+
+				if(!isNaN(parseFloat(max))) {
+					max = parseFloat(max);
 				} else {
 					max = 1000;
+				}
+				if(min > max) { // substitude the values
+					tmp = min; min = max; max = tmp; 
 				}
 				return Math.random() * (max - min) + min;
 			},

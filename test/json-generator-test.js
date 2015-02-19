@@ -61,7 +61,7 @@ describe('Testing local json generator', function() {
 		JsonGenerator.generateData().then(testNumberDefault);
 		$rootScope.$apply();
 
-		dataModel = { property: { jsonType: 'number', range: {min: 5, max: 10}}};
+		dataModel = { property: { jsonType: 'number', range: [5,10]}};
 		var testNumberRange = function (data) {
 			expect(data[0].property).toBeWithinRange(5, 10);
 			expect(data[1].property).toBeWithinRange(5, 10);
@@ -83,7 +83,7 @@ describe('Testing local json generator', function() {
 		JsonGenerator.generateData().then(testNumberLength);
 		$rootScope.$apply();
 
-		dataModel = { property: { jsonType: 'number', length: 7, range: {min: 5000000, max: 5000002}}};
+		dataModel = { property: { jsonType: 'number', length: 7, range: [5000000, 5000002]}};
 		var testNumberLengthRange = function (data) {
 			expect(data[0].property).toBeWithinRange(5000000, 5000002);
 			expect(data[1].property).toBeWithinRange(5000000, 5000002);
@@ -130,7 +130,7 @@ describe('Testing local json generator', function() {
 		JsonGenerator.generateData().then(testFloatNumberDefault);
 		$rootScope.$apply();
 
-		dataModel = { propertyL1: { propertyL2: { jsonType: 'float', range: {min: 1.5, max: 2} }}};
+		dataModel = { propertyL1: { propertyL2: { jsonType: 'float', range:[1.5,2]}}};
 		var testFloatNumberRange = function (data) {
 			expect(data[0].propertyL1.propertyL2).toBeWithinRange(1.5,2);
 			expect(data[1].propertyL1.propertyL2).toBeWithinRange(1.5,2);
