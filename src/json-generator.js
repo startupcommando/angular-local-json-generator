@@ -66,6 +66,16 @@ Example of dataModel values. different generators support different fields. All 
 		var lowercase = 'abcdefghijklmnopqrstuvwxyz';
 		var uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 		var numbers = '0123456789';
+		var removeSpecialChars = function(text) {
+			// console.log(specials);
+			for(var i = text.length-1; i >= 0; i -= 1) {
+				if(specials.indexOf(text.charAt(i)) > -1) {
+					// console.log('Removed special char:',text.charAt(i));
+					text = text.slice(0, i) + text.slice(i+1);
+				}
+			}
+			return text;
+		}
 
 		//NOTE: globalTemp this is used by all typeProcessing methods to preserve data while an 
 		// external(outside of the service) iteration is in progress. Example for such method is index. 
@@ -82,6 +92,7 @@ Example of dataModel values. different generators support different fields. All 
 				} else {
 					text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 				}
+				text = removeSpecialChars(text);
 				var txtArr = text.toLowerCase().split(' ');
 
 				length = parseInt(modelValue.length);
@@ -432,15 +443,7 @@ Example of dataModel values. different generators support different fields. All 
 					}
 				}) // capitalize the first leter of every word except for the first word
 				.replace(/\s+/g, ''); // remove the spaces
-
-				// TODO removal of the special characters
-				// console.log(specials);
-				for(var i = text.length-1; i >= 0; i -= 1) {
-					if(specials.indexOf(text.charAt(i)) > -1) {
-						text = text.slice(0, i) + text.slice(i+1);
-					}
-				}
-
+				text = removeSpecialChars(text);
 				// console.log(text);
 				return text;
 			}

@@ -2,13 +2,13 @@
 
 Inspired by [FillText.com](http://www.filltext.com/)
 
-Usually both the frontend and the backend parts of a web are developed simultaneously. In that case there is an issue. The frontend requires data but the backend is not ready to provide it. As a workaround, multiple json generators such as [FillText.com](http://www.filltext.com/) appear.  Obviously those services come with limitations. They require constant connectivity and their availability is not guaranteed.
+Usually both the frontend and the backend of a web app are developed simultaneously,but there is an issue. The frontend requires data but the backend is not ready to provide it. As a workaround, multiple json generators such as [FillText.com](http://www.filltext.com/) appear.  Obviously those services come with limitations. They require constant connectivity and their availability is not guaranteed.
 
 With angular-local-json-generator module we try to remove those limitations for all angular developers. 
 
 ## Dependencies
 
-(Moment.js)[http://momentjs.com/] and (loDash)[https://lodash.com/] should be installed in the app
+[Moment.js](http://momentjs.com/) and [loDash](https://lodash.com/) should be installed in the app
 
 	bower install moment --save
 	bower install lodash --save
@@ -36,22 +36,24 @@ The module has 3 methods:
 * generateData - obvious
 
 After installing it, make sure to inject it as a dependency in the angular app.
+
 ```javascript
 	var app = angular.module('myApp', ['angular-local-json-generator']);
-``` 
-Than use it in an angular service or controller:
 ```
+
+Than use it in an angular service or controller:
+
+```javascript
 	var MySvc = function(JsonGenerator) {
 	}
 	angular.module('myApp').factory('MySvc',['JsonGenerator',MySvc]);
-
 ```
 
 The service requires two things:
 
-* configuration object - passed as an argument in setConfig 
+#### 1. configuration object 
 
-Here is the structure of the current configuration object:
+Passed as an argument in the setConfig method. Here is the structure of the current configuration object:
 
 	var config = {
 		rows: 0-n,
@@ -62,14 +64,14 @@ Here is the structure of the current configuration object:
 
 NOTE: Currently the rows define the number of elements generated in an array and will be used for the nested arrays as well. 
 
-* dataModel - - passed as an argument in setDataModel. It describes the structure of the json data, which is going to be generated. 
+#### 2. dataModel 
 
-Possible dataModel structures: 
+Passed as an argument in setDataModel. It describes the structure of the data, as well as the value types(valueDescription) which are going to be transfomed into json format. Here are some possible dataModel structures:
 
 * Generates an array of objects:
 
-```
-	var dataMode = {
+```javascript
+	var dataModel = {
 		<field>: <valueDescription>
 	}
 ```
@@ -77,7 +79,7 @@ Possible dataModel structures:
 * Generates an array of values:
 
 ```
-	var dataMode = {
+	var dataModel = {
 		<valueDescription>
 	}
 ```
@@ -85,7 +87,7 @@ Possible dataModel structures:
 * Generates nested array of values:
 
 ```
-	var dataMode = {
+	var dataModel = {
 		<field>: [<valueDescription>]
 	}
 ```
@@ -93,7 +95,7 @@ Possible dataModel structures:
 * Generates nested array of objects:
 
 ```
-	var dataMode = {
+	var dataModel = {
 		<field>: [{
 			field: <valueDescription>
 		}]
@@ -103,14 +105,14 @@ Possible dataModel structures:
 * Generates a nested object:
 
 ```
-	var dataMode = {
+	var dataModel = {
 		<field>: {
 			field: <valueDescription>
 		}
 	}
 ```
 
-The valueDescription is an object with the following structure:  
+The valueDescription is an object with the following structure:
 
 	var metaValue = {
 		jsonType: null, // mandatory field. The supported dataTypes are: ["text", "number", "float", "date", "name", "firstName", "lastName", "addressObject", "zip", "country", "city", "address", "email", "ip", "username", "password", "letter", "enum", "bool", "phone", "index", "slugFromText"]
