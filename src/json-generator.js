@@ -75,7 +75,7 @@ Example of dataModel values. different generators support different fields. All 
 				}
 			}
 			return text;
-		}
+		};
 
 		//NOTE: globalTemp this is used by all typeProcessing methods to preserve data while an 
 		// external(outside of the service) iteration is in progress. Example for such method is index. 
