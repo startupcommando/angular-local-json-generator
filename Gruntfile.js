@@ -48,9 +48,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
 
     grunt.registerTask('build', [
-        'clean',
         'jshint',
         'karma',
+        'clean',
         'uglify'
     ]);
 

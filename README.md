@@ -6,6 +6,13 @@ Usually both the frontend and the backend parts of a web are developed simultane
 
 With angular-local-json-generator module we try to remove those limitations for all angular developers. 
 
+## Dependencies
+
+(Moment.js)[http://momentjs.com/] and (loDash)[https://lodash.com/] should be installed in the app
+
+	bower install moment --save
+	bower install lodash --save
+
 ## Install
 
 ```
@@ -107,30 +114,23 @@ The valueDescription is an object with the following structure:
 
 	var metaValue = {
 		jsonType: null, // mandatory field. The supported dataTypes are: ["text", "number", "float", "date", "name", "firstName", "lastName", "addressObject", "zip", "country", "city", "address", "email", "ip", "username", "password", "letter", "enum", "bool", "phone", "index", "slugFromText"]
-
 		value: null, // optional, can be used to customize the generate data. Ex: text field
-		
 		length: null, // optional, the behavior changes according to the defined data type. if "text", length means number of words, if string - number of chars, if numeric - number digits
-
 		format: null, // optional, customize the outcome of the generated data. Works with dates, phones 
-
-		range: {
-			values: null, // optional: array of values. Used by enum
-			min: null, // optional: used by numeric datatypes as well as dates
-			max: null, // optional: used by numeric datatypes as well as dates
-		}
+		range: [min, max] // numerics and dates, the date format MUST BE 'D-M-YYY'
+		enums: [val1, val2, val3] // optional: array of values. Used by enum
 	};
 
 ## Examples
 
-# Example of a dataModel using all supported data types
+### Example of a dataModel using all supported data types
 
 	var dataModel = {
 		slug: {jsonType: 'slugFromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
 		id: {jsonType: 'index', value: 4}, // generating indexes with initial value 4
 		phone: {jsonType: 'phone',format: '(code) number',}, // code is replaced by a dummy country code, number by the actual number
 		flag: { jsonType: 'bool'},
-		types: {jsonType: 'enum',range: {values: ['book','paper','article']}},
+		types: {jsonType: 'enum',enums: ['book','paper','article']},
 		randomString: {jsonType: 'letter', length: 15, format: 'luns'}, // l -lowercase, u -uppercase, n -numeric, s - special char
 		fullAddress: {jsonType: 'addressObject'}, // Inspired by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
 		zip: { jsonType: 'zip' },
@@ -140,17 +140,17 @@ The valueDescription is an object with the following structure:
 		ip: {jsonType: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
 		username: {jsonType: 'username'},
 		txt: {jsonType: 'text', length: 1}, // generate one random word from lorem ipsum, value can be given similar to slug, so it cane outpu a random word fom a given text, 
-		number: {jsonType: 'number',length: 5 range: {min: 2*Math.pow(10,5),max:5*Math.pow(10,5)}},
-		float: {jsonType: 'number',range: {min: 20,max: 50}},
+		number: {jsonType: 'number',length: 5 range: [2*Math.pow(10,5),5*Math.pow(10,5)]},
+		floatVal1: {jsonType: 'number',range: [20,50]},
+		floatVal2: {jsonType: 'number',length: 2}, // length sets the number of digits after the fraction point
 		pass: {	jsonType: 'password', length: 8 },
-		date: {	jsonType: 'date',format: 'YYYY-MM-DD',	range: {min: '1-1-2015',// max: '10-2-2015'}},
+		date: {	jsonType: 'date',format: 'YYYY-MM-DD',range: ['1-1-2015', '10-2-2015']}, // the given range of dates in the following format D-M-YYY
 		firstName: { jsonType: 'firstName' },
 		lastName: { jsonType: 'lastName' },
 		name: { jsonType: 'name' }, // combines random first and last name
 	}
 
-
-# A real life example: Demonstrates nested array of values
+### A real life example 1: Demonstrates nested array of values
 
 		JsonGeneratorSvc.setConfig({rows:15});
 		JsonGeneratorSvc.setDataModel({
@@ -167,7 +167,7 @@ The valueDescription is an object with the following structure:
 		});
 
 
-# Example 2: Demonstrates nested array of objects
+### A real life example 2: Demonstrates nested array of objects
 
 	JsonGeneratorSvc.setConfig({rows:15, randomRows: true}); // the number of rows will be generaed randomly in the range 1-15
 	JsonGeneratorSvc.setDataModel({
@@ -185,7 +185,7 @@ The valueDescription is an object with the following structure:
 		console.log('Error:', err);
 	});
 
-# Example 3: Demonstrate chain of promises
+### A real life example 3: Demonstrate chain of promises
 
 	var loadPrices = function() {
 		JsonGeneratorSvc.setConfig({rows:20,delay: 1000, simulateServer: true}); // the delay will be generated randomly in the range 0-2*delay

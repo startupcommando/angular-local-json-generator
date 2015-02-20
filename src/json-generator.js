@@ -1,23 +1,24 @@
 /* Example modelValue which should be passed to setDataModel
-	{
+	var dataModel = {
 		slug: {jsonType: 'slugFromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
-		id: {jsonType: 'index', value: 4},
+		id: {jsonType: 'index', value: 4}, // generating indexes with initial value 4
 		phone: {jsonType: 'phone',format: '(code) number',}, // code is replaced by a dummy country code, number by the actual number
 		flag: { jsonType: 'bool'},
-		types: {jsonType: 'enum',range: {values: ['book','paper','shit']}},
+		types: {jsonType: 'enum',enums: ['book','paper','article']},
 		randomString: {jsonType: 'letter', length: 15, format: 'luns'}, // l -lowercase, u -uppercase, n -numeric, s - special char
-		fullAddress: {jsonType: 'addressObject'}, // combines zip, country, city, address in one object, Mabe not needed after we create nesting
+		fullAddress: {jsonType: 'addressObject'}, // Inspired by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
 		zip: { jsonType: 'zip' },
 		country: {jsonType: 'country'},
 		address: {jsonType: 'address'},
 		email: {jsonType: 'email'},
-		ip: {jsonType: 'ip'},
+		ip: {jsonType: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
 		username: {jsonType: 'username'},
-		txt: {jsonType: 'text',length: 1},
-		number: {jsonType: 'number',length: 5 range: {min: 2*Math.pow(10,5),max:5*Math.pow(10,5)}},
-		float: {jsonType: 'number',range: {min: 20,max: 50}},
+		txt: {jsonType: 'text', length: 1}, // generate one random word from lorem ipsum, value can be given similar to slug, so it cane outpu a random word fom a given text, 
+		number: {jsonType: 'number',length: 5 range: [2*Math.pow(10,5),5*Math.pow(10,5)]},
+		floatVal1: {jsonType: 'number',range: [20,50]},
+		floatVal2: {jsonType: 'number',length: 2}, // length sets the number of digits after the fraction point
 		pass: {	jsonType: 'password', length: 8 },
-		date: {	jsonType: 'date',format: 'YYYY-MM-DD',	range: {min: '1-1-2015',// max: '10-2-2015'}},
+		date: {	jsonType: 'date',format: 'YYYY-MM-DD',range: ['1-1-2015', '10-2-2015']}, // the given range of dates in the following format D-M-YYY
 		firstName: { jsonType: 'firstName' },
 		lastName: { jsonType: 'lastName' },
 		name: { jsonType: 'name' }, // combines random first and last name
@@ -54,15 +55,11 @@ Example for the config object
 Example of dataModel values. different generators support different fields. All of them require type
 		var metaValue = {
 			jsonType: null,
-			value: null,
-			length: null, // for strings
+			value: null, 
+			length: null, // for strings and numerics
 			format:null, // this is a text indicating a patter, used with dates
-			// regexFormat:null, // if the string should pass a specific regular expression
-			range: {
-				values: null, // if exact number of values are given
-				min: null, 
-				max: null,
-			}
+			range: [min, max] // numerics and dates, the date format MUST BE 'D-M-YYY'
+			enums: [val1, val2, val3] // enum uses that 
 		};
 */
 		var specials = '!@#$%^&*()_+{}:"<>?\|[];\',./`~';
@@ -137,7 +134,8 @@ Example of dataModel values. different generators support different fields. All 
 			},
 			float: function(modelValue) {
 				// TODO length for controling the number of digits after the ,
-				var min = null, max = null,tmp;
+				var min = null, max = null,tmp,result=null;
+				var fractionPart = 1;
 				if (modelValue.range && modelValue.range instanceof Array) {
 					min = modelValue.range[0];max = modelValue.range[1];
 				}
@@ -156,33 +154,29 @@ Example of dataModel values. different generators support different fields. All 
 				if(min > max) { // substitude the values
 					tmp = min; min = max; max = tmp; 
 				}
-				return Math.random() * (max - min) + min;
+				result = Math.random() * (max - min) + min;
+				if(modelValue.length) { // cut the float numer after the fraction point to the length
+					fractionPart = Math.pow(10,modelValue.length);
+					result = parseInt(result*fractionPart)/fractionPart;
+				}					
+				return result;
 			},
 			date: function(modelValue) {				
-				var min = 1, max = 0;
+				var min = 1, max = moment().unix(),tmp;
 				var fmt = '';
 				if(typeof modelValue.format === 'string') {
 					fmt = modelValue.format;
 				}
-				if(modelValue.range && modelValue.range.min && typeof modelValue.range.min === 'string') {
-					min = moment(modelValue.range.min,'D-M-YYYY').isValid?moment(modelValue.range.min,'D-M-YYYY').unix():0;
-					if(!min) {
-						return 'Invalid date. range.min. The format should be D-M-YYYY';
-					}
-				} else {
-					min = 1;
+				if(modelValue.range && typeof modelValue.range[0] === 'string' && modelValue.range[0].length > 0) {
+					min = moment(modelValue.range[0],'D-M-YYYY').isValid?moment(modelValue.range[0],'D-M-YYYY').unix():1;
 				}
-				if(modelValue.range && modelValue.range.max && typeof modelValue.range.max === 'string') {
-					max = moment(modelValue.range.max,'D-M-YYYY').isValid?moment(modelValue.range.max,'D-M-YYYY').unix():moment().unix();
-					if(!max) {
-						return 'Invalid date. range.max. The format should be D-M-YYYY';
-					}
-				} else {
-					max = moment().unix(); // get now as max
+
+				if(modelValue.range && typeof modelValue.range[1] === 'string' && modelValue.range[1].length > 0) {
+					max = moment(modelValue.range[1],'D-M-YYYY').isValid?moment(modelValue.range[1],'D-M-YYYY').unix():moment().unix();
 				}
 				// substitude if max is less then min and use only max
 				if(max < min) {
-					max = min; min = 1;
+					tmp = max; max = min; min = tmp;
 				}
 
 				return moment.unix(min + Math.floor(Math.random() * (max - min))).format(fmt);
@@ -371,10 +365,10 @@ Example of dataModel values. different generators support different fields. All 
 				return result;
 			},
 			enum: function (modelValue) {
-				if(!modelValue.range || !modelValue.range.values || !(modelValue.range.values instanceof Array)) {
+				if(!modelValue.enums || !(modelValue.enums instanceof Array)) {
 					return;
 				}
-				var enumArr = modelValue.range.values.slice(); // copy the values to be picked from
+				var enumArr = modelValue.enums.slice(); // copy the values to be picked from
 				return enumArr[Math.floor(Math.random()*(enumArr.length))];
 			},
 			bool: function() {
