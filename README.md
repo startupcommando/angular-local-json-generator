@@ -27,14 +27,6 @@ bower install angular-local-json-generator --save-dev
    
 ## Getting Started
 
-The module can generate array of values and objects. It allows unlimited levels of nesting.
-
-The module has 3 methods:
-
-* setConfig - sets a configuration object
-* setDataModel - defines the data structure: the required fields and their data types
-* generateData - obvious
-
 After installing it, make sure to inject it as a dependency in the angular app.
 
 ```javascript
@@ -49,30 +41,54 @@ Than use it in an angular service or controller:
 	angular.module('myApp').factory('MySvc',['JsonGenerator',MySvc]);
 ```
 
-The service requires two things:
+The module can generate array of values and objects. It allows unlimited levels of nesting.
+
+The module has only 1 method, which requres the data meta model as a parameter:
+
+* generateData - obvious
+
+The meta model consists of two parts configuration object and model object:
 
 #### 1. configuration object 
 
 Passed as an argument in the setConfig method. Here is the structure of the current configuration object:
 
 	var config = {
-		rows: 0-n,
+		rows: 0-n, // mandatory how many rows to generate for the json array
 		randomRows: true,false, // randomize the number of rows. Range 1-n
 		simulateServer:  true,false // false - the delay is strict, true - the delay varies randomly in the range of 0 - 2*delay
 		delay: miliseconds
 	}
 
-NOTE: Currently the rows define the number of elements generated in an array and will be used for the nested arrays as well. 
+If there are nested array we may have nested configuration objects defining the nested array. It is optional though. If no configuration object is provided, the root configuration object is used
 
-#### 2. dataModel 
+#### 2. model 
 
-Passed as an argument in setDataModel. It describes the structure of the data, as well as the value types(valueDescription) which are going to be transfomed into json format. Here are some possible dataModel structures:
+The model can consist of valueDescription or key,valueDescription pairs
+
+The valueDescription is an object with the following structure:
+
+	var metaValue = {
+		type: null, // mandatory field. The supported dataTypes are: ["text", "number", "float", "date", "name", "firstName", "lastName", "addressObject", "zip", "country", "city", "address", "email", "ip", "username", "password", "letter", "enum", "bool", "phone", "index", "slugFromText"]
+		value: null, // optional, can be used to customize the generate data. Ex: text field
+		length: null, // optional, the behavior changes according to the defined data type. if "text", length means number of words, if string - number of chars, if numeric - number digits
+		format: null, // optional, customize the outcome of the generated data. Works with dates, phones 
+		range: [min, max] // numerics and dates, the date format MUST BE 'D-M-YYY'
+		enums: [val1, val2, val3] // optional: array of values. Used by enum
+	};
+
+The followinf examples show different structures of the metamodel:
 
 * Generates an array of objects:
 
 ```javascript
 	var dataModel = {
-		<field>: <valueDescription>
+		config: <configurationObject>,
+		model: {
+			<field1>: <valueDescription>
+			......
+			<fieldN>: <valueDescription>
+		}
 	}
 ```
 
@@ -80,7 +96,10 @@ Passed as an argument in setDataModel. It describes the structure of the data, a
 
 ```
 	var dataModel = {
-		<valueDescription>
+		config: <configurationObject>,
+		model: {
+			<valueDescription>
+		}
 	}
 ```
 
@@ -88,7 +107,15 @@ Passed as an argument in setDataModel. It describes the structure of the data, a
 
 ```
 	var dataModel = {
-		<field>: [<valueDescription>]
+		config: <configurationObject>
+		model: [{
+			<field>: [{
+				config: <configurationObject>, // optional
+				model: {
+					<valueDescription>
+				}
+			}]
+		}]
 	}
 ```
 
@@ -96,8 +123,16 @@ Passed as an argument in setDataModel. It describes the structure of the data, a
 
 ```
 	var dataModel = {
-		<field>: [{
-			field: <valueDescription>
+		config: <configurationObject>
+		model: [{
+			<field>: [{
+				config: <configurationObject>, // optional
+				model: {
+					<field1>: <valueDescription>
+					......
+					<fieldN>: <valueDescription>
+				}
+			}]
 		}]
 	}
 ```
@@ -107,62 +142,58 @@ Passed as an argument in setDataModel. It describes the structure of the data, a
 ```
 	var dataModel = {
 		<field>: {
-			field: <valueDescription>
+			model: {
+				field: <valueDescription>
+			}
 		}
 	}
 ```
 
-The valueDescription is an object with the following structure:
 
-	var metaValue = {
-		jsonType: null, // mandatory field. The supported dataTypes are: ["text", "number", "float", "date", "name", "firstName", "lastName", "addressObject", "zip", "country", "city", "address", "email", "ip", "username", "password", "letter", "enum", "bool", "phone", "index", "slugFromText"]
-		value: null, // optional, can be used to customize the generate data. Ex: text field
-		length: null, // optional, the behavior changes according to the defined data type. if "text", length means number of words, if string - number of chars, if numeric - number digits
-		format: null, // optional, customize the outcome of the generated data. Works with dates, phones 
-		range: [min, max] // numerics and dates, the date format MUST BE 'D-M-YYY'
-		enums: [val1, val2, val3] // optional: array of values. Used by enum
-	};
 
 ## Examples
 
 ### Example of a dataModel using all supported data types
 
 	var dataModel = {
-		slug: {jsonType: 'slugFromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
-		id: {jsonType: 'index', value: 4}, // generating indexes with initial value 4
-		phone: {jsonType: 'phone',format: '(code) number',}, // code is replaced by a dummy country code, number by the actual number
-		flag: { jsonType: 'bool'},
-		types: {jsonType: 'enum',enums: ['book','paper','article']},
-		randomString: {jsonType: 'letter', length: 15, format: 'luns'}, // l -lowercase, u -uppercase, n -numeric, s - special char
-		fullAddress: {jsonType: 'addressObject'}, // Inspired by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
-		zip: { jsonType: 'zip' },
-		country: {jsonType: 'country'},
-		address: {jsonType: 'address'},
-		email: {jsonType: 'email'},
-		ip: {jsonType: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
-		username: {jsonType: 'username'},
-		txt: {jsonType: 'text', length: 1}, // generate one random word from lorem ipsum, value can be given similar to slug, so it cane outpu a random word fom a given text, 
-		number: {jsonType: 'number',length: 5 range: [2*Math.pow(10,5),5*Math.pow(10,5)]},
-		floatVal1: {jsonType: 'number',range: [20,50]},
-		floatVal2: {jsonType: 'number',length: 2}, // length sets the number of digits after the fraction point
-		pass: {	jsonType: 'password', length: 8 },
-		date: {	jsonType: 'date',format: 'YYYY-MM-DD',range: ['1-1-2015', '10-2-2015']}, // the given range of dates in the following format D-M-YYY
-		firstName: { jsonType: 'firstName' },
-		lastName: { jsonType: 'lastName' },
-		name: { jsonType: 'name' }, // combines random first and last name
+		camelCase: {type: 'camelCasefromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
+		slug: {type: 'slugFromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
+		id: {type: 'index', value: 4}, // generating indexes with initial value 4
+		phone: {type: 'phone',format: '(code) number',}, // code is replaced by a dummy country code, number by the actual number
+		flag: { type: 'bool'},
+		types: {type: 'enum',enums: ['book','paper','article']},
+		randomString: {type: 'letter', length: 15, format: 'luns'}, // l -lowercase, u -uppercase, n -numeric, s - special char
+		fullAddress: {type: 'addressObject'}, // Inspired by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
+		zip: { type: 'zip' },
+		country: {type: 'country'},
+		address: {type: 'address'},
+		email: {type: 'email'},
+		ip: {type: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
+		username: {type: 'username'},
+		txt: {type: 'text', length: 1}, // generate one random word from lorem ipsum, value can be given similar to slug, so it cane outpu a random word fom a given text, 
+		number: {type: 'number',length: 5 range: [2*Math.pow(10,5),5*Math.pow(10,5)]},
+		floatVal1: {type: 'number',range: [20,50]},
+		floatVal2: {type: 'number',length: 2}, // length sets the number of digits after the fraction point
+		pass: {	type: 'password', length: 8 },
+		date: {	type: 'date',format: 'YYYY-MM-DD',range: ['1-1-2015', '10-2-2015']}, // the given range of dates in the following format D-M-YYY
+		firstName: { type: 'firstName' },
+		lastName: { type: 'lastName' },
+		name: { type: 'name' }, // combines random first and last name
 	}
 
 ### A real life example 1: Demonstrates nested array of values
 
-		JsonGeneratorSvc.setConfig({rows:15});
-		JsonGeneratorSvc.setDataModel({
-			slug: {jsonType: 'slugFromText',length: 3},
-			// completed will have one date
-			completed: {jsonType: 'date',format: 'YYYY-MM-DD',range: { min: '23-5-2005', max: '15-12-2014' },
-			// scheduled be an array of dates
-			scheduled: [{jsonType: 'date',format: 'YYYY-MM-DD',range: { min: '23-5-2005', max: '15-12-2014' }}]
-		});
-		JsonGeneratorSvc.generateData().then(function (data) {
+		var input = {
+			config: {rows:15},
+			model: {
+				slug: {type: 'slugFromText',length: 3},
+				// completed will have one date
+				completed: {jsonType: 'date',format: 'YYYY-MM-DD',range: { min: '23-5-2005', max: '15-12-2014' },
+				// scheduled be an array of dates
+				scheduled: [{jsonType: 'date',format: 'YYYY-MM-DD',range: { min: '23-5-2005', max: '15-12-2014' }}]
+			}
+		}
+		JsonGeneratorSvc.generateData(input).then(function (data) {
 			console.log(data);
 		}, function(err) {
 			console.log('Error:', err);
@@ -171,17 +202,22 @@ The valueDescription is an object with the following structure:
 
 ### A real life example 2: Demonstrates nested array of objects
 
-	JsonGeneratorSvc.setConfig({rows:15, randomRows: true}); // the number of rows will be generaed randomly in the range 1-15
-	JsonGeneratorSvc.setDataModel({
-		patientId: {jsonType: 'number',length: 7},
-		visits: [{
-			index: {jsonType: 'index',value: 1},
-			date: {jsonType: 'date'},
-			passed: {jsonType: 'bool'},
-			paid: {jsonType: 'bool'}
-		}]
-	});
-	JsonGeneratorSvc.generateData().then(function (patients) {
+	var input = {
+		config: {rows:15},
+		model: {
+			patientId: {type: 'number',length: 7},
+			visits: [{
+				config: {rows:4, randomRows: true}, // generates random amount of vists in the range of 0 and 4
+				model: {
+					index: {type: 'index',value: 1},
+					date: {type: 'date'},
+					passed: {type: 'bool'},
+					paid: {type: 'bool'}
+				}
+			}]
+		}
+	}
+	JsonGeneratorSvc.generateData(input).then(function (patients) {
 		console.log(data);
 	}, function(err) {
 		console.log('Error:', err);
@@ -190,9 +226,11 @@ The valueDescription is an object with the following structure:
 ### A real life example 3: Demonstrate chain of promises
 
 	var loadPrices = function() {
-		JsonGeneratorSvc.setConfig({rows:20,delay: 1000, simulateServer: true}); // the delay will be generated randomly in the range 0-2*delay
-		JsonGeneratorSvc.setDataModel({jsonType:'number'}); // just a simple array of values
-		return JsonGeneratorSvc.generateData().then(function (prices) {
+		var input = {
+			config: {rows:20,delay: 1000, simulateServer: true},  // the delay will be generated randomly in the range 0-2*delay
+			model: {type:'number'}  // just a simple array of values
+		}
+		return JsonGeneratorSvc.generateData(input).then(function (prices) {
 			$scope.prices = prices;
 		}, function(err) {
 			console.log('Error:', err);
@@ -200,11 +238,11 @@ The valueDescription is an object with the following structure:
 	};
 
 	var loadDates = function () {
-		JsonGeneratorSvc.setConfig({rows:15});
-		JsonGeneratorSvc.setDataModel({
-			date: {jsonType: 'date'},
-		});
-		return JsonGeneratorSvc.generateData().then(function (dates) {
+		var input = {
+			config: {rows:20,delay: 1000, simulateServer: true},  // the delay will be generated randomly in the range 0-2*delay
+			model: {date: {type: 'date'}}  // just a simple array of values
+		};
+		return JsonGeneratorSvc.generateData(input).then(function (dates) {
 			$scope.dates = dates;
 		}, function(err) {
 			console.log('Error:', err);

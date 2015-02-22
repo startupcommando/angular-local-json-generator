@@ -1,27 +1,28 @@
 /* Example modelValue which should be passed to setDataModel
 	var dataModel = {
-		slug: {jsonType: 'slugFromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
-		id: {jsonType: 'index', value: 4}, // generating indexes with initial value 4
-		phone: {jsonType: 'phone',format: '(code) number',}, // code is replaced by a dummy country code, number by the actual number
-		flag: { jsonType: 'bool'},
-		types: {jsonType: 'enum',enums: ['book','paper','article']},
-		randomString: {jsonType: 'letter', length: 15, format: 'luns'}, // l -lowercase, u -uppercase, n -numeric, s - special char
-		fullAddress: {jsonType: 'addressObject'}, // Inspired by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
-		zip: { jsonType: 'zip' },
-		country: {jsonType: 'country'},
-		address: {jsonType: 'address'},
-		email: {jsonType: 'email'},
-		ip: {jsonType: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
-		username: {jsonType: 'username'},
-		txt: {jsonType: 'text', length: 1}, // generate one random word from lorem ipsum, value can be given similar to slug, so it cane outpu a random word fom a given text, 
-		number: {jsonType: 'number',length: 5 range: [2*Math.pow(10,5),5*Math.pow(10,5)]},
-		floatVal1: {jsonType: 'number',range: [20,50]},
-		floatVal2: {jsonType: 'number',length: 2}, // length sets the number of digits after the fraction point
-		pass: {	jsonType: 'password', length: 8 },
-		date: {	jsonType: 'date',format: 'YYYY-MM-DD',range: ['1-1-2015', '10-2-2015']}, // the given range of dates in the following format D-M-YYY
-		firstName: { jsonType: 'firstName' },
-		lastName: { jsonType: 'lastName' },
-		name: { jsonType: 'name' }, // combines random first and last name
+		camelCase: {type: 'camelCasefromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
+		slug: {type: 'slugFromText',value: 'this t"e"xt is fo\'r buil_ding a. slug!'},
+		id: {type: 'index', value: 4}, // generating indexes with initial value 4
+		phone: {type: 'phone',format: '(code) number',}, // code is replaced by a dummy country code, number by the actual number
+		flag: { type: 'bool'},
+		types: {type: 'enum',enums: ['book','paper','article']},
+		randomString: {type: 'letter', length: 15, format: 'luns'}, // l -lowercase, u -uppercase, n -numeric, s - special char
+		fullAddress: {type: 'addressObject'}, // Inspired by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
+		zip: { type: 'zip' },
+		country: {type: 'country'},
+		address: {type: 'address'},
+		email: {type: 'email'},
+		ip: {type: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
+		username: {type: 'username'},
+		txt: {type: 'text', length: 1}, // generate one random word from lorem ipsum, value can be given similar to slug, so it cane outpu a random word fom a given text, 
+		number: {type: 'number',length: 5 range: [2*Math.pow(10,5),5*Math.pow(10,5)]},
+		floatVal1: {type: 'number',range: [20,50]},
+		floatVal2: {type: 'number',length: 2}, // length sets the number of digits after the fraction point
+		pass: {	type: 'password', length: 8 },
+		date: {	type: 'date',format: 'YYYY-MM-DD',range: ['1-1-2015', '10-2-2015']}, // the given range of dates in the following format D-M-YYY
+		firstName: { type: 'firstName' },
+		lastName: { type: 'lastName' },
+		name: { type: 'name' }, // combines random first and last name
 	}
 */
 
@@ -42,7 +43,7 @@
 	angular.module('angular-local-json-generator',[]).factory('JsonGenerator',['$q',function($q) {
 		var dataModel = null, generatedData = [];
 		var errMsg = 'Error: ';
-		var config = null;
+		var globalCfg = null;
 /* 
 Example for the config object
 		config = {
@@ -54,7 +55,7 @@ Example for the config object
 
 Example of dataModel values. different generators support different fields. All of them require type
 		var metaValue = {
-			jsonType: null,
+			type: null,
 			value: null, 
 			length: null, // for strings and numerics
 			format:null, // this is a text indicating a patter, used with dates
@@ -66,10 +67,27 @@ Example of dataModel values. different generators support different fields. All 
 		var lowercase = 'abcdefghijklmnopqrstuvwxyz';
 		var uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 		var numbers = '0123456789';
-		var removeSpecialChars = function(text) {
-			// console.log(specials);
+		var removeSpecialChars = function(text,what) {
+			// console.log(specials, what);
+			var chars = '';
+			what = what.toLowerCase();
+			// console.log('what: ',what);
+			if(what.indexOf('l') > -1) {
+				chars += lowercase;
+			}
+			if(what.indexOf('u') > -1) {
+				chars += uppercase;
+			}
+			if(what.indexOf('n') > -1) {
+				chars += numbers;
+			}
+			if(what.indexOf('s') > -1) {
+				chars += specials;
+			}
+			// console.log('chars: ',chars);
+
 			for(var i = text.length-1; i >= 0; i -= 1) {
-				if(specials.indexOf(text.charAt(i)) > -1) {
+				if(chars.indexOf(text.charAt(i)) > -1) {
 					// console.log('Removed special char:',text.charAt(i));
 					text = text.slice(0, i) + text.slice(i+1);
 				}
@@ -92,8 +110,11 @@ Example of dataModel values. different generators support different fields. All 
 				} else {
 					text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 				}
-				text = removeSpecialChars(text);
+				text = removeSpecialChars(text,'s');
 				var txtArr = text.toLowerCase().split(' ');
+				txtArr = txtArr.filter(function(n){ 
+					return n !== undefined && n !== '';
+				}); 
 
 				length = parseInt(modelValue.length);
 				if(isNaN(length) || length <= 0 || length > txtArr.length) {
@@ -421,19 +442,22 @@ Example of dataModel values. different generators support different fields. All 
 				return phone;
 			},
 			index: function(modelValue) {
-				if(globalTemp.index || globalTemp.index >= 0) {
+				if((globalTemp.index || globalTemp.index >= 0) && isNaN(parseInt(modelValue.value))) {
 					globalTemp.index += 1;
 				} else {
-					globalTemp.index = 0;					
+					globalTemp.index = 0;
 					if(!isNaN(parseInt(modelValue.value))) {
 						globalTemp.index = modelValue.value;
+						modelValue.value = null;
 					}
 				}
 
 				return globalTemp.index;
 			},
-			slugFromText: function(modelValue) {
-				var firstWord = true, text  = this.text(modelValue);
+			camelCasefromText: function(modelValue) {
+				var firstWord = true,text;
+				modelValue.value  = removeSpecialChars(modelValue.value,'ns');
+				text = this.text(modelValue); // remove numeric and special chars
 				text = text.replace(/\w\S*/g, function(txt){
 					if(firstWord) {
 						firstWord = false;
@@ -443,7 +467,13 @@ Example of dataModel values. different generators support different fields. All 
 					}
 				}) // capitalize the first leter of every word except for the first word
 				.replace(/\s+/g, ''); // remove the spaces
-				text = removeSpecialChars(text);
+				// console.log(text);
+				return text;
+			},
+			slugFromText: function(modelValue) {
+				var firstWord = true, text  = this.text(modelValue);
+				text = removeSpecialChars(text,'s');
+				text = text.replace(/\s+/g, '_'); // remove the spaces
 				// console.log(text);
 				return text;
 			}
@@ -454,12 +484,12 @@ Example of dataModel values. different generators support different fields. All 
 			var result = {};
 			for(var key in obj) {
 				modelValue = obj[key];
-				if(modelValue && !modelValue.jsonType && modelValue instanceof Array)
+				if(modelValue && !modelValue.type && modelValue instanceof Array)
 				{
 					// console.log('TODO Nested arrays');
-					result[key] = generateArray(modelValue[0]);
+					result[key] = generateArray(modelValue[0].config,modelValue[0].model);
 				} else {
-					if(modelValue && !modelValue.jsonType && typeof modelValue === 'object') {
+					if(modelValue && !modelValue.type && typeof modelValue === 'object') {
 						// console.log('Nested object');
 						result[key] = generateObjectValues(modelValue);
 					}
@@ -471,10 +501,10 @@ Example of dataModel values. different generators support different fields. All 
 					// modelValue = translateModelValue(modelValue); // TODO
 				}
 				if(typeof modelValue === 'object' && 
-					typeof modelValue.jsonType === 'string' &&
-					typeProcessing.hasOwnProperty(modelValue.jsonType) &&
-					typeof typeProcessing[modelValue.jsonType] === 'function') {
-						result[key] = typeProcessing[modelValue.jsonType](modelValue);
+					typeof modelValue.type === 'string' &&
+					typeProcessing.hasOwnProperty(modelValue.type) &&
+					typeof typeProcessing[modelValue.type] === 'function') {
+						result[key] = typeProcessing[modelValue.type](modelValue);
 				}
 			}
 			// returns null if result is an empty object
@@ -483,24 +513,34 @@ Example of dataModel values. different generators support different fields. All 
 
 		var generateArrayValue = function(obj) {
 			if(typeof obj === 'object' && 
-				typeof obj.jsonType === 'string' &&
-				typeProcessing.hasOwnProperty(obj.jsonType) &&
-				typeof typeProcessing[obj.jsonType] === 'function') {
-					return typeProcessing[obj.jsonType](obj);
+				typeof obj.type === 'string' &&
+				typeProcessing.hasOwnProperty(obj.type) &&
+				typeof typeProcessing[obj.type] === 'function') {
+					return typeProcessing[obj.type](obj);
 			}
 		};
 
-		var generateArray = function(obj) {
-			var result = [], rows = config.rows;
-
-			if(config.randomRows) {
-				rows = 1+Math.floor(Math.random()*(config.rows - 1));
+		var generateArray = function(cfg,model) {
+			var result = [], rows;
+			var config = cfg;
+			if(!config) {
+				config = globalCfg;
 			}
+			if(!model) {
+				errMsg = errMsg+='Undefined object';
+				return;
+			}
+
+			rows = config.rows;
+			if(config.randomRows) {
+				rows = 1+Math.floor(Math.random()*(config.rows));
+			}
+
 			for(var idx=0; idx < rows; idx += 1) {
-				if(obj.jsonType) {
-					result[idx] = generateArrayValue(obj);
+				if(model.type && typeof model.type === 'string') {
+					result[idx] = generateArrayValue(model);
 				} else {
-					result[idx] = generateObjectValues(obj);
+					result[idx] = generateObjectValues(model);
 				}
 				if(typeof result[idx] === 'undefined') {
 					errMsg = errMsg+='Unable to generate a value with index '+idx;
@@ -511,44 +551,26 @@ Example of dataModel values. different generators support different fields. All 
 		};
 
 		var self = {
-			setDataModel: function (dm) {
-				dataModel = _.clone(dm);
-				// if the dataModel is set/reset, then if not empty reset the generatedData
-				if(generatedData.length > 0) {
-					generatedData.length = 0;
-				}
-			},
-			setConfig: function (configObj) {
-				if(isNaN(parseInt(configObj.rows)) || configObj.rows <= 0) {
-					errMsg = errMsg += 'Provide correct number of rows.';
-					return false;
-				}
-				config = _.clone(configObj);
-				// if the config is set/reset, then if not empty reset the generatedData
-				if(generatedData.length > 0) {
-					generatedData.length = 0;
-				}
-				return true;
-			},
-			generateData: function() {
+			generateData: function(input) {
 				var deferred = $q.defer();
-				var delay = 0;
+				var delay = 0, config;
 				// console.log('Supported generators:', Object.getOwnPropertyNames(typeProcessing));
-				if(!config) {
-					errMsg = errMsg+='Missing configuration.';
-					deferred.reject(errMsg);
+				if(!input || !input.config || isNaN(parseInt(input.config.rows)) || !input.model) {
+					deferred.reject('Error: Provide both the correct configuration and model.');
+					return deferred.promise;
 				}
-				if(!dataModel || typeof dataModel !== 'object') {
-					errMsg = errMsg+='Empty data model.';
-					deferred.reject(errMsg);
-				}
+
+				config = input.config;
+				globalCfg = _.clone(config);
+
 				var goGenerate = function() {
-					generatedData = _.clone(dataModel);
-					generatedData = generateArray(generatedData);
+					generatedData = _.clone(input.model);
+					generatedData = generateArray(config,generatedData);
 					if(generatedData) {
 						deferred.resolve(generatedData);
 					} else {
 						deferred.reject(errMsg);
+						return deferred.promise;
 					}					
 				};
 				if(config.delay) {
