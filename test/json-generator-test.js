@@ -383,4 +383,31 @@ describe('Testing local json generator', function() {
 		JsonGenerator.generateData(input).then(testPhonesDefault,promiseErrorHandler);
 		$rootScope.$apply();
 	});
+
+	it('generates and tests credit card numbers', function() {
+		var rows =7;
+		var input = { config: {rows: rows} };
+		var testCCDefault = function(data) {
+			for(var idx in data) {
+				var val = data[idx].cc+'';
+				var sum = 0;
+				for (var i = 0; i < val.length; i++) {
+					var intVal = parseInt(val.substr(i, 1));
+					if (i % 2 === 0) {
+						intVal *= 2;
+						if (intVal > 9) {
+							intVal = 1 + (intVal % 10);
+						}
+					}
+					sum += intVal;
+				}
+				expect((sum % 10)).toBe(0);
+			}
+		};
+		input.model = {
+			 cc: { type: 'ccNumber'}
+		};
+		JsonGenerator.generateData(input).then(testCCDefault,promiseErrorHandler);
+		$rootScope.$apply();
+	});
 });

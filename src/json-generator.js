@@ -9,7 +9,9 @@
 		randomString: {type: 'letter', length: 15, format: 'luns'}, // l -lowercase, u -uppercase, n -numeric, s - special char
 		fullAddress: {type: 'addressObject'}, // Inspired by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
 		zip: { type: 'zip' },
-		country: {type: 'country'},
+		country: {type: 'country', format: 'abbr'}, // if abbr, the result is the country's abbreviation
+		state: {type: 'usState', format: 'abbr'}, // if abbr, the result is the state's abbreviation
+		company: {type: 'company', format: 'us' } // format takes an abbreviation of a country and a company for the country is generated, supported: us, de, bg
 		address: {type: 'address'},
 		email: {type: 'email'},
 		ip: {type: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
@@ -23,6 +25,8 @@
 		firstName: { type: 'firstName' },
 		lastName: { type: 'lastName' },
 		name: { type: 'name' }, // combines random first and last name
+		ccType: {type: 'ccType'} // supported ['american express', 'discover', 'mastercard', 'visa', 'Diners Club', 'jcb', 'voyager']
+		cc: { type: 'ccNumber', format: 'american express' }, // generates cc number according to a given type
 	}
 */
 
@@ -213,6 +217,90 @@ Example of dataModel values. different generators support different fields. All 
 
 				return moment.unix(min + Math.floor(Math.random() * (max - min))).format(fmt);
 			},
+			ccType: function (){
+				var types = ['american express', 'discover', 'mastercard', 'visa', 'Diners Club', 'jcb', 'voyager'];
+				return types[Math.floor(Math.random()*types.length)];
+			},
+			ccNumber: function (modelValue){
+				var ccPrefixes = {
+					'american express': {prefixes: ['34','37'],length: [15, 15]},
+					'discover': {prefixes: ['6011', '644', '645', '646', '647', '648', '649', '65'],length: [16, 16]},
+					'mastercard': {	prefixes: ['51','52','53','54','55'],length: [16, 16]},
+					'visa': {	prefixes: ['4539','4556','4916','4532','4929','40240071','4485','4716','4'],length: [13, 16]},
+					'Diners Club': {prefixes: ['300','301','302','303','36'],length: [14, 14]},
+					'enRoute': {prefixes: ['2014','2149'],length: [16, 16]},
+					'jcb': {prefixes: ['3528', 3589],	length: [16, 16]},
+					'voyager': {prefixes: ['8699'],length: [16, 16]}
+				};
+				var ccType, prefixArr, length;
+
+				ccType = modelValue.format;
+				if(typeof ccType === 'string' && ccPrefixes[ccType].prefixes instanceof Array) {
+					prefixArr = ccPrefixes[modelValue.format].prefixes;
+					length = Math.floor(Math.random() * (ccPrefixes[ccType].length[1] - ccPrefixes[ccType].length[0])) + ccPrefixes[ccType].length[0];
+				} else {
+					ccType = this.ccType();
+					ccType = 'mastercard';
+				 	prefixArr = ccPrefixes[ccType].prefixes;
+					length = Math.floor(Math.random() * (ccPrefixes[ccType].length[1] - ccPrefixes[ccType].length[0])) + ccPrefixes[ccType].length[0];
+				}
+				// console.log(ccType,prefixArr,length);
+
+				// The next is taken and modified from https://github.com/grahamking/darkcoding-credit-card/blob/master/gencc.js
+				function strrev(str) {
+					var i;
+					if (!str) {
+						return '';
+					}
+					var revstr='';
+					for (i = str.length-1; i>=0; i--) {
+						revstr+=str.charAt(i);
+					}
+					return revstr;
+				}
+
+				// get the prefix part
+				var ccnumber = prefixArr[Math.floor(Math.random()*(prefixArr.length-1))]; 
+				// console.log('prefix',ccnumber);
+
+				// generate digits
+				while ( ccnumber.length < (length - 1) ) {
+					ccnumber += Math.floor(Math.random()*10);
+				}
+				// console.log('generate digits',ccnumber);
+
+				// reverse number and convert to int
+				var reversedCCnumberString = strrev( ccnumber );
+				var reversedCCnumber = [];
+				for ( var i=0; i < reversedCCnumberString.length; i++ ) {
+					reversedCCnumber[i] = parseInt( reversedCCnumberString.charAt(i) );
+				}
+				// console.log('reversedCCnumber',reversedCCnumber);
+
+				// calculate sum
+				var sum = 0,pos = 0,odd;
+				while ( pos < length - 1 ) {
+					odd = reversedCCnumber[ pos ] * 2;
+					if ( odd > 9 ) {
+						odd -= 9;
+					}
+					sum += odd;
+					if ( pos !== (length - 2) ) {
+						sum += reversedCCnumber[ pos +1 ];
+					}
+					pos += 2;
+				}
+				// console.log('sum',sum);
+
+				// calculate check digit
+				var checkdigit = (( Math.floor(sum/10) + 1) * 10 - sum) % 10;
+				// console.log('checkdigit',checkdigit);
+				ccnumber += checkdigit;
+
+				// console.log('the final number',ccnumber);
+				// console.log('======================');
+				return ccnumber;
+			},
 			name: function() {
 				var fname = this.firstName(), lname = this.lastName();
 				if(!fname || !lname) {
@@ -295,20 +383,6 @@ Example of dataModel values. different generators support different fields. All 
 				}
 				return countries[Math.floor(Math.random()*countries.length)].substr(3);
 			},
-			company: function (modelValue) {
-				var country = 'us', selected= null;
-				var buisnessTypes = {
-					us: [ 'LP', 'LLP', 'LLLP', 'LLC', 'PLLC ', 'Corp', 'Inc', 'Ltd', 'co', 'Industries', 'association', 	'company', 'corporation', 'club', 'foundation',
-						'incorporated', 'institute', 'society', 'union', 'university', 'syndicate' ],
-					bg: ['АД', 'АДСИЦ', 'ЕАД', 'ЕТ', 'ООД', 'КД', 'КДА', 'СД']
-				};
-
-				selected = buisnessTypes[country];
-				if(modelValue && buisnessTypes[modelValue.format] instanceof Array) {
-					selected = buisnessTypes[modelValue.format];
-				}
-				return this.lastName()+' '+selected[Math.floor(Math.random()*selected.length)];
-			},
 			city: function () {
 				// TODO according to the country
 				var cities = ['Hargeisa','King Edward Point','Port-aux-Français','Jerusalem','Mariehamn','Yaren','Marigot','Atafu',
@@ -334,6 +408,35 @@ Example of dataModel values. different generators support different fields. All 
 					'Washington','Montevideo','Tashkent','Port-Vila','Caracas','Hanoi','Charlotte Amalie','Mata-Utu','Sanaa','Lusaka','Harare',
 					'Washington','North Nicosia','Diego Garcia'];
 				return cities[Math.floor(Math.random()*cities.length)];
+			},
+			usSate: function(modelValue) {
+				var states = ['AK;Alaska','AL;Alabama','AR;Arkansas','AZ;Arizona','CA;California','CO;Colorado','CT;Connecticut','DC;District of Columbia',
+					'DE;Delaware','FL;Florida','GA;Georgia','HI;Hawaii','IA;Iowa','ID;Idaho','IL;Illinois','IN;Indiana','KS;Kansas','KY;Kentucky',
+					'LA;Louisiana','MA;Massachusetts','MD;Maryland','ME;Maine','MI;Michigan','MN;Minnesota','MO;Missouri','MS;Mississippi',
+					'MT;Montana','NC;North Carolina','ND;North Dakota','NE;Nebraska','NH;New Hampshire','NJ;New Jersey','NM;New Mexico',
+					'NV;Nevada','NY;New York','OH;Ohio','OK;Oklahoma','OR;Oregon','PA;Pennsylvania','RI;Rhode Island','SC;South Carolina',
+					'SD;South Dakota','TN;Tennessee','TX;Texas','UT;Utah','VA;Virginia','VT;Vermont','WA;Washington','WI;Wisconsi','WV;West Virginia',
+					'WY;Wyoming'];
+
+				if(modelValue && modelValue.format === 'abbr') {
+					return states[Math.floor(Math.random()*states.length)].substr(0,2).toLowerCase();
+				}
+				return states[Math.floor(Math.random()*states.length)].substr(3);
+			},
+			company: function (modelValue) {
+				var country = 'us', selected= null;
+				var buisnessTypes = {
+					us: [ 'LP', 'LLP', 'LLLP', 'LLC', 'PLLC ', 'Corp', 'Inc', 'Ltd', 'Co', 'Industries', 'Association', 	'Company', 'Corporation', 'Club', 'Foundation',
+						'Incorporated', 'Institute', 'Society', 'Union', 'Syndicate' ],
+					bg: ['АД', 'АДСИЦ', 'ЕАД', 'ЕТ', 'ООД', 'КД', 'КДА', 'СД'],
+					de: ['KGaA', 'GmbH', 'AG', 'GbR', 'OHG', 'KG', 'Einzelunternehmen', 'e.G.']
+				};
+
+				selected = buisnessTypes[country];
+				if(modelValue && buisnessTypes[modelValue.format] instanceof Array) {
+					selected = buisnessTypes[modelValue.format];
+				}
+				return this.lastName()+' '+selected[Math.floor(Math.random()*selected.length)];
 			},
 			address: function() {
 				var lname = this.lastName();

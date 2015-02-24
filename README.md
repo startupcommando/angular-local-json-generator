@@ -165,7 +165,9 @@ The followinf examples show different structures of the metamodel:
 		randomString: {type: 'letter', length: 15, format: 'luns'}, // l -lowercase, u -uppercase, n -numeric, s - special char
 		fullAddress: {type: 'addressObject'}, // Inspired by filltext combines zip, country, city, address in one object, Maybe redundant, because we support nesting
 		zip: { type: 'zip' },
-		country: {type: 'country'},
+		country: {type: 'country', format: 'abbr'}, // if abbr, the result is the country's abbreviation
+		state: {type: 'usState', format: 'abbr'}, // if abbr, the result is the state's abbreviation
+		company: {type: 'company', format: 'us' } // format takes an abbreviation of a country and a company for the country is generated, supported: us, de, bg
 		address: {type: 'address'},
 		email: {type: 'email'},
 		ip: {type: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
@@ -179,6 +181,8 @@ The followinf examples show different structures of the metamodel:
 		firstName: { type: 'firstName' },
 		lastName: { type: 'lastName' },
 		name: { type: 'name' }, // combines random first and last name
+		ccType: {type: 'ccType'} // supported ['american express', 'discover', 'mastercard', 'visa', 'Diners Club', 'jcb', 'voyager']
+		cc: { type: 'ccNumber', format: 'american express' }, // generates cc number according to a given type
 	}
 
 ### A real life example 1: Demonstrates nested array of values
