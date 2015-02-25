@@ -410,4 +410,23 @@ describe('Testing local json generator', function() {
 		JsonGenerator.generateData(input).then(testCCDefault,promiseErrorHandler);
 		$rootScope.$apply();
 	});
+
+	it('generates and tests companies', function() {
+		var rows =7;
+		var input = { config: {rows: rows} };
+		var values = ['c1','c2','c3'];
+		var testCompanyValues = function(data) {
+			for(var idx in data) {
+				var val = data[idx].company.split(' ');
+				val = [val[0]]; // transform it for testing
+				// console.log(val);
+				expect(values).toEqual(jasmine.arrayContaining(val));
+			}
+		};
+		input.model = {
+			 company: { type: 'company',enums: values}
+		};
+		JsonGenerator.generateData(input).then(testCompanyValues,promiseErrorHandler);
+		$rootScope.$apply();
+	});
 });

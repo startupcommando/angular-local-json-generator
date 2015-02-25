@@ -167,7 +167,7 @@ The followinf examples show different structures of the metamodel:
 		zip: { type: 'zip' },
 		country: {type: 'country', format: 'abbr'}, // if abbr, the result is the country's abbreviation
 		state: {type: 'usState', format: 'abbr'}, // if abbr, the result is the state's abbreviation
-		company: {type: 'company', format: 'us' } // format takes an abbreviation of a country and a company for the country is generated, supported: us, de, bg
+		company: {type: 'company', format: 'us', enums: ['Google', 'My Company', 'Test Company'] } // format takes an abbreviation of a country and a company for the country is generated, supported: us, de, bg
 		address: {type: 'address'},
 		email: {type: 'email'},
 		ip: {type: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary

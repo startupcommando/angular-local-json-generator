@@ -11,7 +11,7 @@
 		zip: { type: 'zip' },
 		country: {type: 'country', format: 'abbr'}, // if abbr, the result is the country's abbreviation
 		state: {type: 'usState', format: 'abbr'}, // if abbr, the result is the state's abbreviation
-		company: {type: 'company', format: 'us' } // format takes an abbreviation of a country and a company for the country is generated, supported: us, de, bg
+		company: {type: 'company', format: 'us', enums: ['Google', 'My Company', 'Test Company'] } // format takes an abbreviation of a country and a company for the country is generated, supported: us, de, bg
 		address: {type: 'address'},
 		email: {type: 'email'},
 		ip: {type: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
@@ -433,7 +433,7 @@ Example of dataModel values. different generators support different fields. All 
 				return states[Math.floor(Math.random()*states.length)].substr(3);
 			},
 			company: function (modelValue) {
-				var country = 'us', selected= null;
+				var country = 'us',companyType,companyName;
 				var buisnessTypes = {
 					us: [ 'LP', 'LLP', 'LLLP', 'LLC', 'PLLC ', 'Corp', 'Inc', 'Ltd', 'Co', 'Industries', 'Association', 	'Company', 'Corporation', 'Club', 'Foundation',
 						'Incorporated', 'Institute', 'Society', 'Union', 'Syndicate' ],
@@ -441,11 +441,17 @@ Example of dataModel values. different generators support different fields. All 
 					de: ['KGaA', 'GmbH', 'AG', 'GbR', 'OHG', 'KG', 'Einzelunternehmen', 'e.G.']
 				};
 
-				selected = buisnessTypes[country];
+				companyType = buisnessTypes[country];
 				if(modelValue && buisnessTypes[modelValue.format] instanceof Array) {
-					selected = buisnessTypes[modelValue.format];
+					companyType = buisnessTypes[modelValue.format];
 				}
-				return this.lastName()+' '+selected[Math.floor(Math.random()*selected.length)];
+
+				if(modelValue.enums instanceof Array && modelValue.enums.length > 0) {
+					companyName = this.enum(modelValue);
+				} else {
+					companyName = this.lastName();
+				}
+				return companyName+' '+companyType[Math.floor(Math.random()*companyType.length)];
 			},
 			address: function() {
 				var lname = this.lastName();
