@@ -16,7 +16,7 @@
 		email: {type: 'email'},
 		ip: {type: 'ip'}, // generates an ip address of a type x.x.x.x, TODO ipv6 addresses as well as different representations such as hex,ocatal, binary
 		username: {type: 'username'},
-		txt: {type: 'text', length: 1}, // generate one random word from lorem ipsum, value can be given similar to slug, so it cane outpu a random word fom a given text, 
+		txt: {type: 'text', length: 1, randomize: true}, // generate one random word from lorem ipsum, value can be given similar to slug, so it cane outpu a random word fom a given text, 
 		number: {type: 'number',length: 5 range: [2*Math.pow(10,5),5*Math.pow(10,5)]},
 		floatVal1: {type: 'number',range: [20,50]},
 		floatVal2: {type: 'number',length: 2}, // length sets the number of digits after the fraction point
@@ -124,6 +124,9 @@ Example of dataModel values. different generators support different fields. All 
 				if(isNaN(length) || length <= 0 || length > txtArr.length) {
 					length = txtArr.length;
 				}
+				if(modelValue.randomize === true) {
+					length = Math.floor(Math.random()*(length-1)) + 1;
+				}
 				
 				text = '';
 				for(var i=0; i<length; i+=1) {
@@ -154,7 +157,10 @@ Example of dataModel values. different generators support different fields. All 
 					tmp = min; min = max; max = tmp; 
 				}
 
-				if(modelValue.length) {
+				if(!isNaN(parseInt(modelValue.length))) {
+					if(modelValue.randomize === true) {
+						modelValue.length = Math.floor(Math.random()*(modelValue.length-1)) + 1;
+					}
 					baseMin = Math.pow(10,modelValue.length-1);
 					for(i;i<modelValue.length-1;i += 1) {
 						baseMax += '9';
@@ -191,7 +197,10 @@ Example of dataModel values. different generators support different fields. All 
 					tmp = min; min = max; max = tmp; 
 				}
 				result = Math.random() * (max - min) + min;
-				if(modelValue.length) { // cut the float numer after the fraction point to the length
+				if(!isNaN(parseFloat(modelValue.length))) { // cut the float numer after the fraction point to the length
+					if(modelValue.randomize === true) {
+						modelValue.length = Math.floor(Math.random()*(modelValue.length-1)) + 1;
+					}
 					fractionPart = Math.pow(10,modelValue.length);
 					result = parseInt(result*fractionPart)/fractionPart;
 				}					
@@ -489,6 +498,9 @@ Example of dataModel values. different generators support different fields. All 
 				var result;
 				if(modelValue.length && !isNaN(parseInt(modelValue.length))) {
 					length = parseInt(modelValue.length);
+					if(modelValue.randomize === true) {
+						length = Math.floor(Math.random()*(length-1)) + 1;
+					}
 				}
 				var charTypes = [];
 				if(modelValue.format && typeof modelValue.format === 'string') {
